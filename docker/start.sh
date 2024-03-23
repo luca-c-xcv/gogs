@@ -55,7 +55,11 @@ setids() {
 }
 
 createuser(){
-    export USER=$USER_GOGS
+    if test -n "$USER_GOGS"; then 
+        export USER=$USER_GOGS 
+    else
+        export USER=git
+    fi
 
     # check if user alread exists
     exists=$(cat /etc/passwd | grep "$USER")
@@ -64,8 +68,9 @@ createuser(){
         return
     fi
     # Create user/group to run Gogs
-    addgroup -S $USER_GOGS
+    addgroup -S $USER
     adduser -G $USER -H -D -g 'Gogs Git User' $USER -h /data/$USER -s /bin/bash && usermod -p '*' $USER && passwd -u $USER
+    mkdir -p ~$USER
     # add gogs configuration in profile file
     echo "export GOGS_CUSTOM=$GOGS_CUSTOM" >> /etc/profile
     # add allowed user to ssh server configuration
