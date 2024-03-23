@@ -54,13 +54,17 @@ setids() {
     usermod -o -u "$PUID" $USER
 }
 
-createuser(){
+manageusername() {
     if test -n "$USER_GOGS"; then 
         export USER=$USER_GOGS 
     else
         export USER=git
     fi
 
+    export USER_HOME=$(eval echo ~$USER)
+}
+
+createuser(){
     # check if user alread exists
     exists=$(cat /etc/passwd | grep "$USER")
     if test -n "$exists"; then
@@ -70,13 +74,14 @@ createuser(){
     # Create user/group to run Gogs
     addgroup -S $USER
     adduser -G $USER -H -D -g 'Gogs Git User' $USER -h /data/$USER -s /bin/bash && usermod -p '*' $USER && passwd -u $USER
-    mkdir -p ~$USER
+    mkdir -p $USER_HOME
     # add gogs configuration in profile file
     echo "export GOGS_CUSTOM=$GOGS_CUSTOM" >> /etc/profile
     # add allowed user to ssh server configuration
     echo "AllowUsers $USER" >> /app/gogs/docker/sshd_config
 }
 
+manageusername
 createuser
 setids
 cleanup
